@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<document>
+	<parameter name="enabled" type="numeric">1</parameter>
+	<parameter name="art_rule" type="string">article/$1/$2.html</parameter>
+	<parameter name="static_rule" type="string">static/$1/$2.html</parameter>
+	<parameter name="tags_rule" type="string">tag/$1.html</parameter>
+	<parameter name="pagesimple_rule" type="string">page$1.html</parameter>
+	<parameter name="cat_rule" type="string">category/$1/$2.html</parameter>
+	<parameter name="pagescat_rule" type="string">category/$1/$2/page/$3.html</parameter>
+	<parameter name="archYM_rule" type="string">archives/$1/$2.html</parameter>
+	<parameter name="archY_rule" type="string">archives/$1.html</parameter>
+	<parameter name="pagesarchYM_rule" type="string">archives/$1/$2/page/$3.html</parameter>
+	<parameter name="pagesarchY_rule" type="string">archives/$1/page/$2.html</parameter>
+	<parameter name="pagestags_rule" type="string">tag/$1/$2.html</parameter>
+	<parameter name="code" type="string"></parameter>
+</document>
