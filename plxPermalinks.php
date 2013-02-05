@@ -78,7 +78,7 @@ class plxPermalinks extends plxPlugin {
     public function IndexEnd() {
         global $plxMotor;
         echo '<?php '.$this->getParam('code') . ' ?>';
-        
+
         // Check if a redirection is needed
         if(isset($_SERVER['REDIRECT_QUERY_STRING']))
         {
@@ -200,74 +200,58 @@ class plxPermalinks extends plxPlugin {
 
         $config='';
         if($activate) {
+            /**
+             * Crée les RewriteRule
+             * @param   $rule       url réécrite
+             * @param   $motifs     tableau des expression correspondant aux jockers ($1, $2...)
+             * @param   $original   url non réécrite
+             * @return RewriteRule
+             **/
+            function genRewriteRule($rule, $motifs, $original) {
+                if(!$rule)
+                    return '';
+                $rule = str_replace('.',"\\.",$rule);
+
+                # Cas où $1 et $2 inversés
+                if(count($motifs) == 2 and strpos($rule, '$1') > strpos($rule, '$2')) {
+                    $original = str_replace('$A','$2',$original);
+                    $original = str_replace('$B','$1',$original);
+                }
+                # Rétablie l'ordre des $1, $2, $3
+                else if(count($motifs) == 3) {
+                    echo $original;
+                    $t = array('$A'=>strpos($rule, '$1'), '$B'=>strpos($rule, '$2'), '$C'=>strpos($rule, '$3'));
+                    asort($t, SORT_NUMERIC);
+                    $i = 1;
+                    foreach($t as $k => $v) {
+                        $original = str_replace($k,'$'.$i,$original);
+                        $i++;
+                    }
+                }
+                else {
+                    $original = str_replace('$A','$1',$original);
+                    $original = str_replace('$B','$2',$original);
+                }
+
+                foreach($motifs as $k => $m) {
+                    $rule = str_replace('$'.($k+1),$m,$rule);
+                }
+                return 'RewriteRule ^' . $rule . '$ '.$original." \n";
+            }
             # Génération de la configuration :
             # Nb. l'ordre a une importance
             $config = "# BEGIN -- plxPermalinks\n";
-            if($rule = $this->getParam('pagescat_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]+)',$rule);
-                $rule = str_replace('$2','([0-9a-z-]+)',$rule);
-                $rule = str_replace('$3','([0-9a-z-]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?categorie$1/$2/page$3/ [L]'."\n";
-            }
-            if($rule = $this->getParam('pagesarchYM_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]{4})',$rule);
-                $rule = str_replace('$2','([0-9]{2})',$rule);
-                $rule = str_replace('$3','([0-9]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?archives/$1/$2/page$3/ [L]'."\n";
-            }
-            if($rule = $this->getParam('pagesarchY_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]{4})',$rule);
-                $rule = str_replace('$2','([0-9]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?archives/$1/page$2/ [L]'."\n";
-            }
-            if($rule = $this->getParam('pagestags_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([a-z0-9-]+)',$rule);
-                $rule = str_replace('$2','([0-9]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?tag/$1/page$2/ [L]'."\n";
-            }
-            if($rule = $this->getParam('art_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]+)',$rule);
-                $rule = str_replace('$2','([0-9a-z-]*)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?article$1/$2 [L]'."\n";
-            }
-            if($rule = $this->getParam('static_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]+)',$rule);
-                $rule = str_replace('$2','([0-9a-z-]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?static$1/$2 [L,QSA]'."\n";
-            }
-            if($rule = $this->getParam('cat_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]+)',$rule);
-                $rule = str_replace('$2','([0-9a-z-]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?categorie$1/$2 [L]'."\n";
-            }
-            if($rule = $this->getParam('archYM_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]{4})',$rule);
-                $rule = str_replace('$2','([0-9]{2})',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?archives/$1/$2 [L]'."\n";
-            }
-            if($rule = $this->getParam('archY_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]{4})',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?archives/$1 [L]'."\n";
-            }
-            if($rule = $this->getParam('tags_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9a-z-]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?tag/$1 [L]'."\n";
-            }
-            if($rule = $this->getParam('pagesimple_rule')) {
-                $rule = str_replace('.',"\\.",$rule);
-                $rule = str_replace('$1','([0-9]+)',$rule);
-                $config .= 'RewriteRule ^' . $rule . '$ index.php?page$1 [L]'."\n";
-            }
+            $config .= genRewriteRule($this->getParam('pagescat_rule'), array('([0-9]+)', '([0-9a-z-]+)', '([0-9a-z-]+)'), 'index.php?categorie$A/$B/page$C/ [L]');
+            $config .= genRewriteRule($this->getParam('pagesarchYM_rule'), array('([0-9]{4})', '([0-9]{2})', '([0-9]+)'), 'index.php?archives/$A/$B/page$C/ [L]');
+            $config .= genRewriteRule($this->getParam('pagesarchY_rule'), array('([0-9]{4})', '([0-9]{4})', '([0-9]+)'), 'index.php?archives/$A/page$B/ [L]');
+            $config .= genRewriteRule($this->getParam('pagestags_rule'), array('([a-z0-9-]+)', '([0-9]+)'), 'index.php?tag/$A/page$B/ [L]');
+            $config .= genRewriteRule($this->getParam('art_rule'), array('([0-9]+)', '([0-9a-z-]*)'), 'index.php?article$A/$B [L]');
+            $config .= genRewriteRule($this->getParam('static_rule'), array('([0-9]+)', '([0-9a-z-]+)'), 'index.php?static$A/$B [L,QSA]');
+            $config .= genRewriteRule($this->getParam('cat_rule'), array('([0-9]+)', '([0-9a-z-]+)'), 'index.php?categorie$A/$B [L]');
+            $config .= genRewriteRule($this->getParam('archYM_rule'), array('([0-9]{4})', '([0-9]{2})'), 'index.php?archives/$A/$B [L]');
+            $config .= genRewriteRule($this->getParam('archY_rule'), array('([0-9]{4})'), 'index.php?archives/$A [L]');
+            $config .= genRewriteRule($this->getParam('tags_rule'), array('([0-9a-z-]+)'), 'index.php?tag/$A [L]');
+            $config .= genRewriteRule($this->getParam('pagesimple_rule'), array('([0-9]+)'), 'index.php?page$A [L]');
             $config .= "# END -- plxPermalinks\n";
         }
 
