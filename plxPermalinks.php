@@ -84,7 +84,7 @@ class plxPermalinks extends plxPlugin {
         {
             $output = $plxMotor->racine.$_SERVER['REDIRECT_QUERY_STRING'];
             eval($this->getParam('code'));
-            if(strrpos($output, $_SERVER['REDIRECT_URL']) === false)
+            if(isset($_SERVER['REDIRECT_URL']) AND (strrpos($output, $_SERVER['REDIRECT_URL']) === false))
             {
                 // 301 redirect for un-rewrited urls
                 foreach($this->URLS_PATTERNS as $p)
@@ -131,7 +131,7 @@ class plxPermalinks extends plxPlugin {
         $code = '';
 
         # Renomme l'url courant déjà réécrite pour éviter qu'elle ne soit réécrite une seconde fois
-        $code .= '$output=str_replace($_SERVER["REDIRECT_URL"],"#@@plxpREDIRECT_URL@@#",$output);';
+        $code .= '$output=(isset($_SERVER["REDIRECT_URL"])?str_replace($_SERVER["REDIRECT_URL"],"#@@plxpREDIRECT_URL@@#",$output):$output);';
 
         # Évite des problèmes dues à la pagination automatique
         if($this->getParam('pagescat_rule') or $this->getParam('pagesarchYM_rule') or $this->getParam('pagesarchY_rule') or $this->getParam('pagestags_rule'))
@@ -173,7 +173,7 @@ class plxPermalinks extends plxPlugin {
             $code .= '$output=preg_replace("#'.$plxAdmin->aConf["racine"].'archives/([0-9]{4})#","'.$plxAdmin->aConf["racine"].'@'.$this->getParam('archY_rule') . '",$output);';
 
         $code .= '$output=preg_replace("#'.$plxAdmin->aConf["racine"].'@#","'.$plxAdmin->aConf["racine"].'",$output);';
-        $code .= '$output=str_replace("#@@plxpREDIRECT_URL@@#",$_SERVER["REDIRECT_URL"],$output);';
+        $code .= '$output=(isset($_SERVER["REDIRECT_URL"])?str_replace("#@@plxpREDIRECT_URL@@#",$_SERVER["REDIRECT_URL"],$output):$output);';
         return $code;
     }
 
