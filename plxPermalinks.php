@@ -79,10 +79,13 @@ class plxPermalinks extends plxPlugin {
         global $plxMotor;
         echo '<?php '.$this->getParam('code') . ' ?>';
 
+        //$output = $_SERVER['REDIRECT_URL'];
+
         // Check if a redirection is needed
         if(isset($_SERVER['REDIRECT_QUERY_STRING']))
         {
             $output = $plxMotor->racine.$_SERVER['REDIRECT_QUERY_STRING'];
+            $redirectCurrentUrls = true;
             eval($this->getParam('code'));
             if(isset($_SERVER['REDIRECT_URL']) AND (strrpos($output, $_SERVER['REDIRECT_URL']) === false))
             {
@@ -131,7 +134,7 @@ class plxPermalinks extends plxPlugin {
         $code = '';
 
         # Renomme l'url courant déjà réécrite pour éviter qu'elle ne soit réécrite une seconde fois
-        $code .= '$output=(isset($_SERVER["REDIRECT_URL"])?str_replace($_SERVER["REDIRECT_URL"],"#@@plxpREDIRECT_URL@@#",$output):$output);';
+        $code .= 'if(!isset($redirectCurrentUrls) or $redirectCurrentUrls==false){$output=(isset($_SERVER["REDIRECT_URL"])?str_replace($_SERVER["REDIRECT_URL"],"#@@plxpREDIRECT_URL@@#",$output):$output);}';
 
         # Évite des problèmes dues à la pagination automatique
         if($this->getParam('pagescat_rule') or $this->getParam('pagesarchYM_rule') or $this->getParam('pagesarchY_rule') or $this->getParam('pagestags_rule'))
